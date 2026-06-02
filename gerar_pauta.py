@@ -640,14 +640,14 @@ def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
     _dyn=defaultdict(set)
     for coord_v,advs in preserved_dc.items():
         _dyn[coord_v].update(advs)
-    # Adiciona advogados da coluna G apenas quando coluna I (Acompanhamento) == 'Sim'
+    # Adiciona advogados da col. G (Adv. Responsável pela Audiência) do Relatório Anterior
+    # quando col. I (Acompanhamento) == 'Sim' — esses campos são preenchidos manualmente
     for ri,row in df_g.iterrows():
-        acomp_v=str(row.get('Acompanhamento','')).strip()
+        prsv=_resolved.get(ri,{})
+        acomp_v=str(prsv.get('acomp') or '').strip()
         if acomp_v != 'Sim': continue
         coord_v=str(row.get('Coordenador','')).strip()
-        adv_g=normalize_adv(str(row.get('Advogado Responsável pela Audiência','')).strip())
-        if not adv_g:
-            adv_g=_resolved.get(ri,{}).get('adv','')
+        adv_g=normalize_adv(str(prsv.get('adv') or '').strip())
         if coord_v and adv_g: _dyn[coord_v].add(adv_g)
 
     rdc=3
