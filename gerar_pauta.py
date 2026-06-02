@@ -160,7 +160,7 @@ def detectar_divergencias(df_new, df_old_ws=None, preserved=None):
 # ── Preservação ───────────────────────────────────────────────────────────────
 def carregar_preservados(src_old_bytes):
     preserved={}; preserved_2={}; preserved_1={}
-    if not src_old_bytes: return preserved, preserved_2, preserved_1
+    if not src_old_bytes: return preserved, preserved_2, preserved_1, defaultdict(set)
     try:
         _wb=openpyxl.load_workbook(io.BytesIO(src_old_bytes),data_only=True)
 
