@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# v2026-06-02d
+# v2026-06-02e
 """
 Módulo de geração da Reunião de Pauta.
 Função principal: gerar_pauta(src_new_bytes, src_old_bytes) -> (output_bytes, resumo, divergencias)
@@ -650,7 +650,7 @@ def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
         # Só incluir se o advogado pertence ao coordenador (exclui CONTROLADORIA, SUPORTE, etc.)
         if coord_v and adv_g and adv2coord.get(adv_g,'') == coord_v:
             _dyn[coord_v].add(adv_g)
-       rdc=3
+    rdc=3
     ws_dc.row_dimensions[rdc].height=20
     ws_dc.merge_cells(f'B{rdc}:G{rdc}')
     c=ws_dc.cell(rdc,2,'⚡ SEMANA 1')
