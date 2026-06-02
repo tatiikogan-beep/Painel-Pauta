@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# v2026-06-02e
+# v2026-06-02f
 """
 Módulo de geração da Reunião de Pauta.
 Função principal: gerar_pauta(src_new_bytes, src_old_bytes) -> (output_bytes, resumo, divergencias)
@@ -205,7 +205,7 @@ def carregar_preservados(src_old_bytes):
                         if (cnj,cli) not in preserved_2: preserved_2[(cnj,cli)]=rec
                         if cnj not in preserved_1: preserved_1[cnj]=rec
         # Ler advogados já vinculados na aba DASH. COORD. do relatório anterior
-        preserved_dc=defaultdict(set)
+        =defaultdict(set)
         if 'DASH. COORD.' in _wb.sheetnames:
             ws_dc_old=_wb['DASH. COORD.']
             current_coord=None
@@ -646,9 +646,9 @@ def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
         acomp_v=str(prsv.get('acomp') or '').strip()
         if acomp_v != 'Sim': continue
         coord_v=str(row.get('Coordenador','')).strip()
-        adv_g=normalize_adv(str(prsv.get('adv') or '').strip())
-        # Só incluir se o advogado pertence ao coordenador (exclui CONTROLADORIA, SUPORTE, etc.)
-        if coord_v and adv_g and adv2coord.get(adv_g,'') == coord_v:
+        adv_g=normalize_adv(str(prsv.get('adv') or row.get('Responsável pela Pasta','') or '').strip())
+        # Incluir se col. I = Sim e coordenador consta em COORDS
+        if coord_v and adv_g and coord_v in COORDS:
             _dyn[coord_v].add(adv_g)
     rdc=3
     ws_dc.row_dimensions[rdc].height=20
