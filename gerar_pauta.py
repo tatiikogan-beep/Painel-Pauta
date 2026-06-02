@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# v2026-06-02c
+# v2026-06-02d
 """
 Módulo de geração da Reunião de Pauta.
 Função principal: gerar_pauta(src_new_bytes, src_old_bytes) -> (output_bytes, resumo, divergencias)
@@ -632,20 +632,25 @@ def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
     c.alignment=Alignment(horizontal='center',vertical='center')
 
     # Grupos dinâmicos — DASH. COORD.
-    # 1) Preservar advogados do Relatório Anterior (DASH. COORD.)
+    # Regra: exibir advogado SOMENTE quando col. I = "Sim" no relatório anterior
+    # Linhas em branco ficam disponíveis para preenchimento manual
+    # As fórmulas COUNTIFS atualizam automaticamente ao digitar o nome
     _dyn=defaultdict(set)
+    # 1) Preservar advogados do DASH. COORD. do relatório anterior
     for coord_v,advs in preserved_dc.items():
         _dyn[coord_v].update(advs)
-    # 2) Adicionar todos os advogados do df_g atual agrupados por coordenador
-    # As fórmulas COUNTIFS calculam automaticamente por Semana e Acompanhamento
+    # 2) Adicionar advogados do relatório anterior onde Acompanhamento == "Sim"
+    #    SOMENTE se o advogado (col. G) pertence ao coordenador (col. F) via adv2coord
     for ri,row in df_g.iterrows():
-        coord_v=str(row.get('Coordenador','')).strip()
         prsv=_resolved.get(ri,{})
+        acomp_v=str(prsv.get('acomp') or '').strip()
+        if acomp_v != 'Sim': continue
+        coord_v=str(row.get('Coordenador','')).strip()
         adv_g=normalize_adv(str(prsv.get('adv') or '').strip())
-        if not adv_g:
-            adv_g=normalize_adv(str(row.get('Responsável pela Pasta','') or '').strip())
-        if coord_v and adv_g and coord_v in COORDS: _dyn[coord_v].add(adv_g)
-        rdc=3
+        # Só incluir se o advogado pertence ao coordenador (exclui CONTROLADORIA, SUPORTE, etc.)
+        if coord_v and adv_g and adv2coord.get(adv_g,'') == coord_v:
+            _dyn[coord_v].add(adv_g)
+       rdc=3
     ws_dc.row_dimensions[rdc].height=20
     ws_dc.merge_cells(f'B{rdc}:G{rdc}')
     c=ws_dc.cell(rdc,2,'⚡ SEMANA 1')
