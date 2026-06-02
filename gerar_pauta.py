@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# v2026-06-02b
 """
 Módulo de geração da Reunião de Pauta.
 Função principal: gerar_pauta(src_new_bytes, src_old_bytes) -> (output_bytes, resumo, divergencias)
@@ -693,7 +694,7 @@ def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
         rows_to_render=active if active else ['']*MIN_ROWS_EMPTY
         for i,adv in enumerate(rows_to_render):
             alt=GRAY_ALT if i%2==0 else WHITE
-            c=ws_dc.cell(rdc,2,adv)
+            c=ws_dc.cell(rdc,2,adv if adv else None)
             c.font=Font(name='Arial',size=9); c.fill=PatternFill('solid',start_color=alt)
             c.alignment=Alignment(horizontal='left',vertical='center',indent=1); c.border=tb()
             adv_ref=f'"{adv}"' if adv else f'B{rdc}'
