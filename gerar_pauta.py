@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# v2026-06-02b
+# v2026-06-02c
 """
 Módulo de geração da Reunião de Pauta.
 Função principal: gerar_pauta(src_new_bytes, src_old_bytes) -> (output_bytes, resumo, divergencias)
@@ -50,8 +50,6 @@ COORDS={
         'adv':['ALYSSON NARBAL DE OLIVEIRA SOMBRA','ARMANDO HÉLIO ALMEIDA MONTEIRO DE MORAES',
                'IRENE FLÁVIA SERENÁRIO','JAMILE BARRETO','JULIANA DE OLIVEIRA ROCHA',
                'RAFAEL CAVALCANTE BARBOSA']},
-    'HELANZIA DE ARAUJO XAVIER WICHMANN':{'dark':'7B3F00','light':'FFE5CC',
-        'adv':['ARTUR SARAIVA DE ANDRADE','WELLINGTON PEREIRA DA ROCHA FILHO']},
     'JENIFFER ROSA BARBOSA DE SALES':{'dark':'4A235A','light':'F5D6FF',
         'adv':['PAULO MARCIO SOARES DE CARVALHO FILHO']},
     'JULIANA MIRELLA ALVES RODRIGUES':{'dark':'145A32','light':'D5F5E3',
@@ -59,9 +57,6 @@ COORDS={
                'KELIANE DE OLIVEIRA','MONIQUE DE KAROLIN SILVA DA COSTA','NATALIA PAIVA DE PAULA',
                'ROBERTA RAYANNE VASCONCELOS BOTO','THALLYS ANDERSON FERREIRA DE LIMA',
                'VICTOR EMANOEL FRADIQUE ACCIOLY FONTENELE']},
-    'LUCIANE MODERNEL MENDES':{'dark':'1B4F72','light':'D6EAF8',
-        'adv':['ANTONIO EDUARDO GOES AGUIAR FILHO','EDUARDO BLASQUES MARTINE',
-               'LAYLA EVELYN NASCIMENTO PINHEIRO','SANE BORGES BORGOMONI']},
     'MARCELLE LEITE RENTROIA':{'dark':'6E2C00','light':'FDEBD0','adv':['MARIANA MOTA FROTA']},
     'NAYANDERSON LUAN MELLO PINHEIRO':{'dark':'0B5345','light':'D1F2EB',
         'adv':['ANDRE VIANA GARRIDO','EMERSON TRAVASSOS TORQUATO','YURI GONDIM DE AMORIM']},
@@ -637,21 +632,20 @@ def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
     c.alignment=Alignment(horizontal='center',vertical='center')
 
     # Grupos dinâmicos — DASH. COORD.
-    # Inicia com advogados preservados do Relatório Anterior (DASH. COORD.)
+    # 1) Preservar advogados do Relatório Anterior (DASH. COORD.)
     _dyn=defaultdict(set)
     for coord_v,advs in preserved_dc.items():
         _dyn[coord_v].update(advs)
-    # Adiciona advogados da col. G (Adv. Responsável pela Audiência) do Relatório Anterior
-    # quando col. I (Acompanhamento) == 'Sim' — esses campos são preenchidos manualmente
+    # 2) Adicionar todos os advogados do df_g atual agrupados por coordenador
+    # As fórmulas COUNTIFS calculam automaticamente por Semana e Acompanhamento
     for ri,row in df_g.iterrows():
-        prsv=_resolved.get(ri,{})
-        acomp_v=str(prsv.get('acomp') or '').strip()
-        if acomp_v != 'Sim': continue
         coord_v=str(row.get('Coordenador','')).strip()
+        prsv=_resolved.get(ri,{})
         adv_g=normalize_adv(str(prsv.get('adv') or '').strip())
-        if coord_v and adv_g: _dyn[coord_v].add(adv_g)
-
-    rdc=3
+        if not adv_g:
+            adv_g=normalize_adv(str(row.get('Responsável pela Pasta','') or '').strip())
+        if coord_v and adv_g and coord_v in COORDS: _dyn[coord_v].add(adv_g)
+        rdc=3
     ws_dc.row_dimensions[rdc].height=20
     ws_dc.merge_cells(f'B{rdc}:G{rdc}')
     c=ws_dc.cell(rdc,2,'⚡ SEMANA 1')
