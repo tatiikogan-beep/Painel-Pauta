@@ -666,7 +666,7 @@ def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
     for coord,info in COORDS.items():
         if coord=='CONTROLADORIA JURÍDICA': continue
         active=sorted(_dyn.get(coord,set()))
-        if not active: continue
+        MIN_ROWS_EMPTY=8
         dk,lk=info['dark'],info['light']
         cf=f'*{coord.split()[0]}*' if any(ord(ch)>127 for ch in coord) else coord
         ws_dc.row_dimensions[rdc].height=24
@@ -690,13 +690,15 @@ def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
             c.alignment=Alignment(horizontal='center',vertical='center',wrap_text=True); c.border=tb()
         rdc+=1; adv_start=rdc
 
-        for i,adv in enumerate(active):
+        rows_to_render=active if active else ['']*MIN_ROWS_EMPTY
+        for i,adv in enumerate(rows_to_render):
             alt=GRAY_ALT if i%2==0 else WHITE
             c=ws_dc.cell(rdc,2,adv)
             c.font=Font(name='Arial',size=9); c.fill=PatternFill('solid',start_color=alt)
             c.alignment=Alignment(horizontal='left',vertical='center',indent=1); c.border=tb()
+            adv_ref=f'"{adv}"' if adv else f'B{rdc}'
             for col,cond in [(3,''),(4,f',GERAL!$M:$M,{_P}'),(5,f',GERAL!$M:$M,{_V}'),(6,f',GERAL!$I:$I,{_SIM}')]:
-                fml=f'=COUNTIFS({sc1(f",GERAL!$G:$G,{_Q}{adv}{_Q}{cond}")})'
+                fml=f'=IF(B{rdc}="","",COUNTIFS({sc1(f",GERAL!$G:$G,{adv_ref}{cond}")}))'
                 c=ws_dc.cell(rdc,col,fml)
                 c.font=Font(name='Arial',size=9); c.fill=PatternFill('solid',start_color=alt)
                 c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
