@@ -208,9 +208,21 @@ def carregar_preservados(src_old_bytes):
                         preserved[(cnj,cli,data,desc)]=rec
                         if (cnj,cli) not in preserved_2: preserved_2[(cnj,cli)]=rec
                         if cnj not in preserved_1: preserved_1[cnj]=rec
+        # Ler advogados já vinculados na aba DASH. COORD. do relatório anterior
+        preserved_dc=defaultdict(set)
+        if 'DASH. COORD.' in _wb.sheetnames:
+            ws_dc_old=_wb['DASH. COORD.']
+            current_coord=None
+            for r in range(1,ws_dc_old.max_row+1):
+                val=str(ws_dc_old.cell(r,2).value or '').strip()
+                if not val: continue
+                if val in COORDS:
+                    current_coord=val
+                elif current_coord and val not in ('ADVOGADO','SUBTOTAL') and val:
+                    preserved_dc[current_coord].add(val)
     except Exception as e:
         pass
-    return preserved, preserved_2, preserved_1
+    return preserved, preserved_2, preserved_1, preserved_dc
 
 # ── Geração principal ─────────────────────────────────────────────────────────
 def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
@@ -237,7 +249,7 @@ def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
     _S1=_serial(s1_start); _S2=_S1+7; _S3=_S1+14
 
     # Preservação
-    preserved, preserved_2, preserved_1=carregar_preservados(src_old_bytes)
+    preserved, preserved_2, preserved_1, preserved_dc=carregar_preservados(src_old_bytes)
 
     # Normalizar _active_advs
     _active_advs=set(normalize_adv(str(v).strip()) for v in df_g['Responsável pela Pasta'].dropna())
@@ -623,14 +635,20 @@ def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
     c.fill=PatternFill('solid',start_color=NAVY)
     c.alignment=Alignment(horizontal='center',vertical='center')
 
-    # Grupos dinâmicos
+    # Grupos dinâmicos — DASH. COORD.
+    # Inicia com advogados preservados do Relatório Anterior (DASH. COORD.)
     _dyn=defaultdict(set)
+    for coord_v,advs in preserved_dc.items():
+        _dyn[coord_v].update(advs)
+    # Adiciona advogados da coluna G apenas quando coluna I (Acompanhamento) == 'Sim'
     for ri,row in df_g.iterrows():
+        acomp_v=str(row.get('Acompanhamento','')).strip()
+        if acomp_v != 'Sim': continue
         coord_v=str(row.get('Coordenador','')).strip()
-        adv_v=normalize_adv(str(row.get('Responsável pela Pasta','')).strip())
-        if not adv_v:
-            adv_v=_resolved.get(ri,{}).get('adv','')
-        if coord_v and adv_v: _dyn[coord_v].add(adv_v)
+        adv_g=normalize_adv(str(row.get('Advogado Responsável pela Audiência','')).strip())
+        if not adv_g:
+            adv_g=_resolved.get(ri,{}).get('adv','')
+        if coord_v and adv_g: _dyn[coord_v].add(adv_g)
 
     rdc=3
     ws_dc.row_dimensions[rdc].height=20
