@@ -664,22 +664,16 @@ def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
 
         ws_dc.row_dimensions[rdc].height=24
         for cs,label in [(2,'ADVOGADO'),(3,'TOTAL'),(4,'PRES.'),(5,'VIRT.'),(6,'ACOMP.')]:
-        if cs==6:
-            c=ws_dc.cell(rdc,cs,label)
-            c.font=Font(name='Arial',bold=True,size=8,color=WHITE)
-            c.fill=PatternFill('solid',start_color='145A32')
-            c.alignment=Alignment(horizontal='center',vertical='center',wrap_text=True); c.border=tb()
-        else:
-            c=ws_dc.cell(rdc,cs,label)
-            c.font=Font(name='Arial',bold=True,size=8,color=dk)
-            c.fill=PatternFill('solid',start_color=lk)
-            c.alignment=Alignment(horizontal='center' if cs>2 else 'left',vertical='center',wrap_text=True); c.border=tb()
-tternFill('solid',start_color=S2_ACCENT); ws_dc.cell(rdc,8).border=tb()
-        for cs,label in [(9,'TOTAL'),(10,'PRES.'),(11,'VIRT.')]:
-            c=ws_dc.cell(rdc,cs,label)
-            c.font=Font(name='Arial',bold=True,size=8,color=S2_DARK)
-            c.fill=PatternFill('solid',start_color=S2_ACCENT)
-            c.alignment=Alignment(horizontal='center',vertical='center',wrap_text=True); c.border=tb()
+            if cs==6:
+                c=ws_dc.cell(rdc,cs,label)
+                c.font=Font(name='Arial',bold=True,size=8,color=WHITE)
+                c.fill=PatternFill('solid',start_color='145A32')
+                c.alignment=Alignment(horizontal='center',vertical='center',wrap_text=True); c.border=tb()
+            else:
+                c=ws_dc.cell(rdc,cs,label)
+                c.font=Font(name='Arial',bold=True,size=8,color=dk)
+                c.fill=PatternFill('solid',start_color=lk)
+                c.alignment=Alignment(horizontal='center' if cs>2 else 'left',vertical='center',wrap_text=True); c.border=tb()
         rdc+=1; adv_start=rdc
 
         rows_to_render=active if active else ['']*MIN_ROWS_EMPTY
@@ -709,8 +703,7 @@ tternFill('solid',start_color=S2_ACCENT); ws_dc.cell(rdc,8).border=tb()
             c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
         ws_dc.row_dimensions[rdc].height=18; rdc+=1
 
-        ws_dc.row_dimensions[rdc].height=18
-        ws_dc.row_dimensions[rdc].height=18
+    ws_dc.row_dimensions[rdc].height=18
     c=ws_dc.cell(rdc,2,'SUBTOTAL')
     c.font=Font(name='Arial',bold=True,size=9,color=WHITE)
     c.fill=PatternFill('solid',start_color=dk)
