@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# v2026-06-02f
+# v2026-06-03a
 """
 Módulo de geração da Reunião de Pauta.
 Função principal: gerar_pauta(src_new_bytes, src_old_bytes) -> (output_bytes, resumo, divergencias)
@@ -631,26 +631,12 @@ def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
     c.fill=PatternFill('solid',start_color=NAVY)
     c.alignment=Alignment(horizontal='center',vertical='center')
 
-    # Grupos dinâmicos — DASH. COORD.
-    # Regra: exibir advogado SOMENTE quando col. I = "Sim" no relatório anterior
-    # Linhas em branco ficam disponíveis para preenchimento manual
-    # As fórmulas COUNTIFS atualizam automaticamente ao digitar o nome
-    _dyn=defaultdict(set)
-    # 1) Preservar advogados do DASH. COORD. do relatório anterior
-    for coord_v,advs in preserved_dc.items():
-        _dyn[coord_v].update(advs)
-    # 2) Adicionar advogados do relatório anterior onde Acompanhamento == "Sim"
-    #    SOMENTE se o advogado (col. G) pertence ao coordenador (col. F) via adv2coord
-    for ri,row in df_g.iterrows():
-        prsv=_resolved.get(ri,{})
-        acomp_v=str(prsv.get('acomp') or '').strip()
-        if acomp_v != 'Sim': continue
-        coord_v=str(row.get('Coordenador','')).strip()
-        adv_g=normalize_adv(str(prsv.get('adv') or row.get('Responsável pela Pasta','') or '').strip())
-        # Incluir se col. I = Sim e coordenador consta em COORDS
-        if coord_v and adv_g and coord_v in COORDS:
-            _dyn[coord_v].add(adv_g)
-    rdc=3
+    # Grupos DASH. COORD. — todos os advogados cadastrados fixos
+    # Cada coordenador exibe TODOS os advs da sua lista em COORDS
+    _dyn=defaultdict(list)
+    for coord_v,info_c in COORDS.items():
+        _dyn[coord_v]=list(info_c['adv'])
+        rdc=3
     ws_dc.row_dimensions[rdc].height=20
     ws_dc.merge_cells(f'B{rdc}:G{rdc}')
     c=ws_dc.cell(rdc,2,'⚡ SEMANA 1')
@@ -665,7 +651,7 @@ def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
 
     for coord,info in COORDS.items():
         if coord=='CONTROLADORIA JURÍDICA': continue
-        active=sorted(_dyn.get(coord,set()))
+        active=_dyn.get(coord,[])
         MIN_ROWS_EMPTY=8
         dk,lk=info['dark'],info['light']
         cf=f'*{coord.split()[0]}*' if any(ord(ch)>127 for ch in coord) else coord
@@ -678,11 +664,17 @@ def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
 
         ws_dc.row_dimensions[rdc].height=24
         for cs,label in [(2,'ADVOGADO'),(3,'TOTAL'),(4,'PRES.'),(5,'VIRT.'),(6,'ACOMP.')]:
+        if cs==6:
+            c=ws_dc.cell(rdc,cs,label)
+            c.font=Font(name='Arial',bold=True,size=8,color=WHITE)
+            c.fill=PatternFill('solid',start_color='145A32')
+            c.alignment=Alignment(horizontal='center',vertical='center',wrap_text=True); c.border=tb()
+        else:
             c=ws_dc.cell(rdc,cs,label)
             c.font=Font(name='Arial',bold=True,size=8,color=dk)
             c.fill=PatternFill('solid',start_color=lk)
             c.alignment=Alignment(horizontal='center' if cs>2 else 'left',vertical='center',wrap_text=True); c.border=tb()
-        ws_dc.cell(rdc,8).fill=PatternFill('solid',start_color=S2_ACCENT); ws_dc.cell(rdc,8).border=tb()
+tternFill('solid',start_color=S2_ACCENT); ws_dc.cell(rdc,8).border=tb()
         for cs,label in [(9,'TOTAL'),(10,'PRES.'),(11,'VIRT.')]:
             c=ws_dc.cell(rdc,cs,label)
             c.font=Font(name='Arial',bold=True,size=8,color=S2_DARK)
@@ -691,44 +683,56 @@ def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
         rdc+=1; adv_start=rdc
 
         rows_to_render=active if active else ['']*MIN_ROWS_EMPTY
-        for i,adv in enumerate(rows_to_render):
-            alt=GRAY_ALT if i%2==0 else WHITE
-            c=ws_dc.cell(rdc,2,adv if adv else None)
+    for i,adv in enumerate(rows_to_render):
+        alt=GRAY_ALT if i%2==0 else WHITE
+        alt_f='D5F5E3' if i%2==0 else 'E8F5E9'
+        c=ws_dc.cell(rdc,2,adv if adv else None)
+        c.font=Font(name='Arial',size=9); c.fill=PatternFill('solid',start_color=alt)
+        c.alignment=Alignment(horizontal='left',vertical='center',indent=1); c.border=tb()
+        adv_ref=f'"{adv}"' if adv else f'B{rdc}'
+        for col,cond in [(3,''),(4,f',GERAL!$M:$M,{_P}'),(5,f',GERAL!$M:$M,{_V}')]:
+            fml=f'=IF(B{rdc}="","",COUNTIFS({sc1(f",GERAL!$G:$G,{adv_ref}{cond}")}))'
+            c=ws_dc.cell(rdc,col,fml)
             c.font=Font(name='Arial',size=9); c.fill=PatternFill('solid',start_color=alt)
-            c.alignment=Alignment(horizontal='left',vertical='center',indent=1); c.border=tb()
-            adv_ref=f'"{adv}"' if adv else f'B{rdc}'
-            for col,cond in [(3,''),(4,f',GERAL!$M:$M,{_P}'),(5,f',GERAL!$M:$M,{_V}'),(6,f',GERAL!$I:$I,{_SIM}')]:
-                fml=f'=IF(B{rdc}="","",COUNTIFS({sc1(f",GERAL!$G:$G,{adv_ref}{cond}")}))'
-                c=ws_dc.cell(rdc,col,fml)
-                c.font=Font(name='Arial',size=9); c.fill=PatternFill('solid',start_color=alt)
-                c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
-            ws_dc.cell(rdc,8).fill=PatternFill('solid',start_color=S2_ACCENT); ws_dc.cell(rdc,8).border=lb()
-            for col,cond in [(9,''),(10,f',GERAL!$M:$M,{_P}'),(11,f',GERAL!$M:$M,{_V}')]:
-                fml=f'=COUNTIFS({sc2(f",GERAL!$F:$F,{_Q}{cf}{_Q}{cond}")})'
-                c=ws_dc.cell(rdc,col,'')
-                c.font=Font(name='Arial',size=9,color=S2_DARK)
-                c.fill=PatternFill('solid',start_color=S2_LIGHT if i%2==0 else S2_ACCENT)
-                c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
-            ws_dc.row_dimensions[rdc].height=18; rdc+=1
+            c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
+        fml_f=f'=IF(B{rdc}="","",COUNTIFS(GERAL!$G:$G,{adv_ref},GERAL!$I:$I,{_SIM}))'
+        c=ws_dc.cell(rdc,6,fml_f)
+        c.font=Font(name='Arial',size=9,bold=True,color='145A32')
+        c.fill=PatternFill('solid',start_color=alt_f)
+        c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
+        ws_dc.cell(rdc,8).fill=PatternFill('solid',start_color=S2_ACCENT); ws_dc.cell(rdc,8).border=lb()
+        for col,cond in [(9,''),(10,f',GERAL!$M:$M,{_P}'),(11,f',GERAL!$M:$M,{_V}')]:
+            fml=f'=COUNTIFS({sc2(f",GERAL!$F:$F,{_Q}{cf}{_Q}{cond}")})'
+            c=ws_dc.cell(rdc,col,'')
+            c.font=Font(name='Arial',size=9,color=S2_DARK)
+            c.fill=PatternFill('solid',start_color=S2_LIGHT if i%2==0 else S2_ACCENT)
+            c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
+        ws_dc.row_dimensions[rdc].height=18; rdc+=1
 
         ws_dc.row_dimensions[rdc].height=18
-        c=ws_dc.cell(rdc,2,'SUBTOTAL')
+        ws_dc.row_dimensions[rdc].height=18
+    c=ws_dc.cell(rdc,2,'SUBTOTAL')
+    c.font=Font(name='Arial',bold=True,size=9,color=WHITE)
+    c.fill=PatternFill('solid',start_color=dk)
+    c.alignment=Alignment(horizontal='left',vertical='center'); c.border=tb()
+    for col in [3,4,5]:
+        cl=get_column_letter(col)
+        c=ws_dc.cell(rdc,col,f'=SUM({cl}{adv_start}:{cl}{rdc-1})')
         c.font=Font(name='Arial',bold=True,size=9,color=WHITE)
         c.fill=PatternFill('solid',start_color=dk)
-        c.alignment=Alignment(horizontal='left',vertical='center'); c.border=tb()
-        for col in [3,4,5,6]:
-            cl=get_column_letter(col)
-            c=ws_dc.cell(rdc,col,f'=SUM({cl}{adv_start}:{cl}{rdc-1})')
-            c.font=Font(name='Arial',bold=True,size=9,color=WHITE)
-            c.fill=PatternFill('solid',start_color=dk)
-            c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
-        ws_dc.cell(rdc,8).fill=PatternFill('solid',start_color=S2_DARK); ws_dc.cell(rdc,8).border=tb()
-        for col,cond in [(9,''),(10,f',GERAL!$M:$M,{_P}'),(11,f',GERAL!$M:$M,{_V}')]:
-            c=ws_dc.cell(rdc,col,f'=COUNTIFS({sc2(f",GERAL!$F:$F,{_Q}{cf}{_Q}{cond}")})')
-            c.font=Font(name='Arial',bold=True,size=9,color=WHITE)
-            c.fill=PatternFill('solid',start_color=S2_DARK)
-            c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
-        rdc+=2
+        c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
+    cl6=get_column_letter(6)
+    c=ws_dc.cell(rdc,6,f'=SUM({cl6}{adv_start}:{cl6}{rdc-1})')
+    c.font=Font(name='Arial',bold=True,size=9,color=WHITE)
+    c.fill=PatternFill('solid',start_color='145A32')
+    c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
+    ws_dc.cell(rdc,8).fill=PatternFill('solid',start_color=S2_DARK); ws_dc.cell(rdc,8).border=tb()
+    for col,cond in [(9,''),(10,f',GERAL!$M:$M,{_P}'),(11,f',GERAL!$M:$M,{_V}')]:
+        c=ws_dc.cell(rdc,col,f'=COUNTIFS({sc2(f",GERAL!$F:$F,{_Q}{cf}{_Q}{cond}")})')
+        c.font=Font(name='Arial',bold=True,size=9,color=WHITE)
+        c.fill=PatternFill('solid',start_color=S2_DARK)
+        c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
+    rdc+=2
 
     ws_dc.freeze_panes='B5'
 
