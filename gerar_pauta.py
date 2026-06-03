@@ -632,10 +632,11 @@ def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
     c.alignment=Alignment(horizontal='center',vertical='center')
 
     # Grupos DASH. COORD. — todos os advogados cadastrados fixos
-    # Cada coordenador exibe TODOS os advs da sua lista em COORDS
+    # Cada coordenador exibe TODOS os advs + SUPORTE/CTRL/AJ no final
+    _ESPECIAIS=['SUPORTE','CONTROLADORIA JURÍDICA','AJ - CONTROLADORIA JURÍDICA']
     _dyn=defaultdict(list)
     for coord_v,info_c in COORDS.items():
-        _dyn[coord_v]=list(info_c['adv'])
+        _dyn[coord_v]=list(info_c['adv'])+_ESPECIAIS
         rdc=3
     ws_dc.row_dimensions[rdc].height=20
     ws_dc.merge_cells(f'B{rdc}:G{rdc}')
