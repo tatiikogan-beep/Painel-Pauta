@@ -7,7 +7,7 @@ Função principal: gerar_pauta(src_new_bytes, src_old_bytes) -> (output_bytes, 
 import io, datetime, unicodedata
 import pandas as pd
 from collections import defaultdict
-from openpyxl import Workbookh
+from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.formatting.rule import Rule as OXLRule
