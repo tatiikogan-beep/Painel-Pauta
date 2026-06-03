@@ -7,7 +7,7 @@ Função principal: gerar_pauta(src_new_bytes, src_old_bytes) -> (output_bytes, 
 import io, datetime, unicodedata
 import pandas as pd
 from collections import defaultdict
-from openpyxl import Workbook
+from openpyxl import Workbookh
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.formatting.rule import Rule as OXLRule
@@ -205,7 +205,7 @@ def carregar_preservados(src_old_bytes):
                         if (cnj,cli) not in preserved_2: preserved_2[(cnj,cli)]=rec
                         if cnj not in preserved_1: preserved_1[cnj]=rec
         # Ler advogados já vinculados na aba DASH. COORD. do relatório anterior
-        =defaultdict(set)
+        preserved_dc=defaultdict(set)
         if 'DASH. COORD.' in _wb.sheetnames:
             ws_dc_old=_wb['DASH. COORD.']
             current_coord=None
