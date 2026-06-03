@@ -678,55 +678,55 @@ def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
         rdc+=1; adv_start=rdc
 
         rows_to_render=active if active else ['']*MIN_ROWS_EMPTY
-    for i,adv in enumerate(rows_to_render):
-        alt=GRAY_ALT if i%2==0 else WHITE
-        alt_f='D5F5E3' if i%2==0 else 'E8F5E9'
-        c=ws_dc.cell(rdc,2,adv if adv else None)
-        c.font=Font(name='Arial',size=9); c.fill=PatternFill('solid',start_color=alt)
-        c.alignment=Alignment(horizontal='left',vertical='center',indent=1); c.border=tb()
-        adv_ref=f'"{adv}"' if adv else f'B{rdc}'
-        for col,cond in [(3,''),(4,f',GERAL!$M:$M,{_P}'),(5,f',GERAL!$M:$M,{_V}')]:
-            fml=f'=IF(B{rdc}="","",COUNTIFS({sc1(f",GERAL!$G:$G,{adv_ref}{cond}")}))'
-            c=ws_dc.cell(rdc,col,fml)
+        for i,adv in enumerate(rows_to_render):
+            alt=GRAY_ALT if i%2==0 else WHITE
+            alt_f='D5F5E3' if i%2==0 else 'E8F5E9'
+            c=ws_dc.cell(rdc,2,adv if adv else None)
             c.font=Font(name='Arial',size=9); c.fill=PatternFill('solid',start_color=alt)
+            c.alignment=Alignment(horizontal='left',vertical='center',indent=1); c.border=tb()
+            adv_ref=f'"{adv}"' if adv else f'B{rdc}'
+            for col,cond in [(3,''),(4,f',GERAL!$M:$M,{_P}'),(5,f',GERAL!$M:$M,{_V}')]:
+                fml=f'=IF(B{rdc}="","",COUNTIFS({sc1(f",GERAL!$G:$G,{adv_ref}{cond}")}))'
+                c=ws_dc.cell(rdc,col,fml)
+                c.font=Font(name='Arial',size=9); c.fill=PatternFill('solid',start_color=alt)
+                c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
+            fml_f=f'=IF(B{rdc}="","",COUNTIFS(GERAL!$G:$G,{adv_ref},GERAL!$I:$I,{_SIM}))'
+            c=ws_dc.cell(rdc,6,fml_f)
+            c.font=Font(name='Arial',size=9,bold=True,color='145A32')
+            c.fill=PatternFill('solid',start_color=alt_f)
             c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
-        fml_f=f'=IF(B{rdc}="","",COUNTIFS(GERAL!$G:$G,{adv_ref},GERAL!$I:$I,{_SIM}))'
-        c=ws_dc.cell(rdc,6,fml_f)
-        c.font=Font(name='Arial',size=9,bold=True,color='145A32')
-        c.fill=PatternFill('solid',start_color=alt_f)
-        c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
-        ws_dc.cell(rdc,8).fill=PatternFill('solid',start_color=S2_ACCENT); ws_dc.cell(rdc,8).border=lb()
-        for col,cond in [(9,''),(10,f',GERAL!$M:$M,{_P}'),(11,f',GERAL!$M:$M,{_V}')]:
-            fml=f'=COUNTIFS({sc2(f",GERAL!$F:$F,{_Q}{cf}{_Q}{cond}")})'
-            c=ws_dc.cell(rdc,col,'')
-            c.font=Font(name='Arial',size=9,color=S2_DARK)
-            c.fill=PatternFill('solid',start_color=S2_LIGHT if i%2==0 else S2_ACCENT)
-            c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
-        ws_dc.row_dimensions[rdc].height=18; rdc+=1
+            ws_dc.cell(rdc,8).fill=PatternFill('solid',start_color=S2_ACCENT); ws_dc.cell(rdc,8).border=lb()
+            for col,cond in [(9,''),(10,f',GERAL!$M:$M,{_P}'),(11,f',GERAL!$M:$M,{_V}')]:
+                fml=f'=COUNTIFS({sc2(f",GERAL!$F:$F,{_Q}{cf}{_Q}{cond}")})'
+                c=ws_dc.cell(rdc,col,'')
+                c.font=Font(name='Arial',size=9,color=S2_DARK)
+                c.fill=PatternFill('solid',start_color=S2_LIGHT if i%2==0 else S2_ACCENT)
+                c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
+            ws_dc.row_dimensions[rdc].height=18; rdc+=1
 
-    ws_dc.row_dimensions[rdc].height=18
-    c=ws_dc.cell(rdc,2,'SUBTOTAL')
-    c.font=Font(name='Arial',bold=True,size=9,color=WHITE)
-    c.fill=PatternFill('solid',start_color=dk)
-    c.alignment=Alignment(horizontal='left',vertical='center'); c.border=tb()
-    for col in [3,4,5]:
-        cl=get_column_letter(col)
-        c=ws_dc.cell(rdc,col,f'=SUM({cl}{adv_start}:{cl}{rdc-1})')
+        ws_dc.row_dimensions[rdc].height=18
+        c=ws_dc.cell(rdc,2,'SUBTOTAL')
         c.font=Font(name='Arial',bold=True,size=9,color=WHITE)
         c.fill=PatternFill('solid',start_color=dk)
-        c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
-    cl6=get_column_letter(6)
-    c=ws_dc.cell(rdc,6,f'=SUM({cl6}{adv_start}:{cl6}{rdc-1})')
-    c.font=Font(name='Arial',bold=True,size=9,color=WHITE)
-    c.fill=PatternFill('solid',start_color='145A32')
-    c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
-    ws_dc.cell(rdc,8).fill=PatternFill('solid',start_color=S2_DARK); ws_dc.cell(rdc,8).border=tb()
-    for col,cond in [(9,''),(10,f',GERAL!$M:$M,{_P}'),(11,f',GERAL!$M:$M,{_V}')]:
-        c=ws_dc.cell(rdc,col,f'=COUNTIFS({sc2(f",GERAL!$F:$F,{_Q}{cf}{_Q}{cond}")})')
+        c.alignment=Alignment(horizontal='left',vertical='center'); c.border=tb()
+        for col in [3,4,5]:
+            cl=get_column_letter(col)
+            c=ws_dc.cell(rdc,col,f'=SUM({cl}{adv_start}:{cl}{rdc-1})')
+            c.font=Font(name='Arial',bold=True,size=9,color=WHITE)
+            c.fill=PatternFill('solid',start_color=dk)
+            c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
+        cl6=get_column_letter(6)
+        c=ws_dc.cell(rdc,6,f'=SUM({cl6}{adv_start}:{cl6}{rdc-1})')
         c.font=Font(name='Arial',bold=True,size=9,color=WHITE)
-        c.fill=PatternFill('solid',start_color=S2_DARK)
+        c.fill=PatternFill('solid',start_color='145A32')
         c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
-    rdc+=2
+        ws_dc.cell(rdc,8).fill=PatternFill('solid',start_color=S2_DARK); ws_dc.cell(rdc,8).border=tb()
+        for col,cond in [(9,''),(10,f',GERAL!$M:$M,{_P}'),(11,f',GERAL!$M:$M,{_V}')]:
+            c=ws_dc.cell(rdc,col,f'=COUNTIFS({sc2(f",GERAL!$F:$F,{_Q}{cf}{_Q}{cond}")})')
+            c.font=Font(name='Arial',bold=True,size=9,color=WHITE)
+            c.fill=PatternFill('solid',start_color=S2_DARK)
+            c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
+        rdc+=2
 
     ws_dc.freeze_panes='B5'
 
