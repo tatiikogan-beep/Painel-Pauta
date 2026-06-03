@@ -685,12 +685,13 @@ def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
             c.font=Font(name='Arial',size=9); c.fill=PatternFill('solid',start_color=alt)
             c.alignment=Alignment(horizontal='left',vertical='center',indent=1); c.border=tb()
             adv_ref=f'"{adv}"' if adv else f'B{rdc}'
+            coord_filter=f',GERAL!$F:$F,"{coord}"' if adv in _ESPECIAIS else ''
             for col,cond in [(3,''),(4,f',GERAL!$M:$M,{_P}'),(5,f',GERAL!$M:$M,{_V}')]:
-                fml=f'=IF(B{rdc}="","",COUNTIFS({sc1(f",GERAL!$G:$G,{adv_ref}{cond}")}))'
+                fml=f'=IF(B{rdc}="","",COUNTIFS({sc1(f",GERAL!$G:$G,{adv_ref}{coord_filter}{cond}")}))'
                 c=ws_dc.cell(rdc,col,fml)
                 c.font=Font(name='Arial',size=9); c.fill=PatternFill('solid',start_color=alt)
                 c.alignment=Alignment(horizontal='center',vertical='center'); c.border=tb()
-            fml_f=f'=IF(B{rdc}="","",COUNTIFS(GERAL!$G:$G,{adv_ref},GERAL!$I:$I,{_SIM}))'
+            fml_f=f'=IF(B{rdc}="","",COUNTIFS(GERAL!$G:$G,{adv_ref},GERAL!$I:$I,{_SIM}{coord_filter}))'
             c=ws_dc.cell(rdc,6,fml_f)
             c.font=Font(name='Arial',size=9,bold=True,color='145A32')
             c.fill=PatternFill('solid',start_color=alt_f)
