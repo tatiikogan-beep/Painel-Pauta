@@ -637,7 +637,7 @@ def gerar_pauta(src_new_bytes: bytes, src_old_bytes: bytes=None):
     _dyn=defaultdict(list)
     for coord_v,info_c in COORDS.items():
         _dyn[coord_v]=list(info_c['adv'])+_ESPECIAIS
-        rdc=3
+    rdc=3
     ws_dc.row_dimensions[rdc].height=20
     ws_dc.merge_cells(f'B{rdc}:G{rdc}')
     c=ws_dc.cell(rdc,2,'⚡ SEMANA 1')
