@@ -91,6 +91,7 @@ def normalize_adv(val):
     if 'CONTROLADORIA' in _plain(v): return 'CONTROLADORIA JURÍDICA'
     if 'KELIANE' in v.upper() and '/' in v: return 'KELIANE DE OLIVEIRA'
     if 'CAVALCANTE' in v.upper() and 'BARSOSA' in v.upper(): return 'RAFAEL CAVALCANTE BARBOSA'
+    if 'JULIA' in _plain(v) and 'MORGADO' in _plain(v): return 'JULIA MENEZES MORGADO'
     return v
 
 def get_coord(resp_pasta):
