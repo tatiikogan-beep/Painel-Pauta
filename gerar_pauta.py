@@ -97,6 +97,7 @@ def get_coord(resp_pasta):
     if pd.isna(resp_pasta) or not resp_pasta: return ''
     v=normalize_adv(str(resp_pasta).strip())
     if v=='ALEXIA ALENCAR CAPIBARIBE': return 'RONALD FEITOSA AGUIAR FILHO'
+    if 'JULIA' in _plain(v) and 'MORGADO' in _plain(v): return 'YURI ALVES BARROS DOS SANTOS'
     return adv2coord.get(v, v)
 
 # ── Detecção de divergências ──────────────────────────────────────────────────
