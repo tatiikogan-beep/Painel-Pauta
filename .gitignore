@@ -1,0 +1,16 @@
+# Bytecode e cache do Python
+__pycache__/
+*.py[cod]
+
+# Ambientes virtuais
+.venv/
+venv/
+env/
+
+# Credenciais e configuração local
+.env
+.streamlit/secrets.toml
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
