@@ -53,8 +53,10 @@ COORDS={
     'JENIFFER ROSA BARBOSA DE SALES':{'dark':'4A235A','light':'F5D6FF',
         'adv':['PAULO MARCIO SOARES DE CARVALHO FILHO']},
     'JULIANA MIRELLA ALVES RODRIGUES':{'dark':'145A32','light':'D5F5E3',
-        'adv':['ARTHUR MASSARI','DANIEL BARROS DE OLIVEIRA','GUSTAVO LOPES ALENCAR FILHO',
+        'adv':['ARTHUR MASSARI','DÁCIO ESTEVAM VERAS','DANIEL BARROS DE OLIVEIRA',
+               'GUSTAVO LOPES ALENCAR FILHO',
                'KELIANE DE OLIVEIRA','MONIQUE DE KAROLIN SILVA DA COSTA',
+               'NATALIA PAIVA DE PAULA',
                'ROBERTA RAYANNE VASCONCELOS BOTO','THALLYS ANDERSON FERREIRA DE LIMA',
                'VICTOR EMANOEL FRADIQUE ACCIOLY FONTENELE']},
     'MARCELLE LEITE RENTROIA':{'dark':'6E2C00','light':'FDEBD0','adv':['MARIANA MOTA FROTA']},
@@ -66,9 +68,9 @@ COORDS={
         'adv':['EVILANY GABRIELA BRAGA PONTES','FRANCOISE CATHERINE SOUZA ALVES',
                'GIOVANNA CAMPOS PEREIRA','GIOVANNA CESAR FERREIRA',
                'LETICIA OLIVEIRA DA SILVA','MATHEUS CAVALCANTI DE ARAUJO',
-               'NATALIA PAIVA DE PAULA','TATIANE CARMO SANTA ROSA']},
+               'TATIANE CARMO SANTA ROSA']},
     'YURI ALVES BARROS DOS SANTOS':{'dark':'154360','light':'D6EAF8',
-        'adv':['JULIA MENEZES MORGADO']},
+        'adv':['ALANIS ALVES DE SOUSA','JULIA MENEZES MORGADO']},
     'CONTROLADORIA JURÍDICA':{'dark':'7D6608','light':'FDFFD6',
         'adv':['CONTROLADORIA JURÍDICA','SUPORTE','AJ - CONTROLADORIA JURÍDICA']},
 }
@@ -92,6 +94,8 @@ def normalize_adv(val):
     if 'KELIANE' in v.upper() and '/' in v: return 'KELIANE DE OLIVEIRA'
     if 'CAVALCANTE' in v.upper() and 'BARSOSA' in v.upper(): return 'RAFAEL CAVALCANTE BARBOSA'
     if 'JULIA' in _plain(v) and 'MORGADO' in _plain(v): return 'JULIA MENEZES MORGADO'
+    if 'DACIO' in _plain(v) and 'VERAS' in _plain(v): return 'DÁCIO ESTEVAM VERAS'
+    if 'ALANIS' in _plain(v) and 'SOUSA' in _plain(v): return 'ALANIS ALVES DE SOUSA'
     return v
 
 def get_coord(resp_pasta):
